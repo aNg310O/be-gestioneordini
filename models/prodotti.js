@@ -6,6 +6,7 @@ module.exports = (sequelize, DataTypes) => {
       descrizione: DataTypes.STRING,
       grammatura: DataTypes.INTEGER,
       peso_totale: DataTypes.INTEGER,
+      valid: DataTypes.BOOLEAN,
       created_at: DataTypes.DATE,
     },
     {

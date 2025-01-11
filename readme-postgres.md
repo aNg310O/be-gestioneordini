@@ -54,8 +54,11 @@ CREATE TABLE "prodotti" (
 "descrizione" varchar,
 "grammatura" integer,
 "peso_totale" integer,
+"valid" boolean,
 "created_at" timestamp
 );
+
+alter table prodotti add column valid  boolean default true;
 
 CREATE TABLE "ordini" (
 "id" integer PRIMARY KEY,
