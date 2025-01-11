@@ -57,6 +57,7 @@ app.use(errorLogMiddleware);
 // Routes
 app.use("/api/users", require("./routes/userRoutes"));
 app.use("/api/logs", verifyToken, require("./routes/logRoutes"));
+app.use("/api/products", require("./routes/productRoutes"));
 
 // Error handling
 app.use(errorHandler);

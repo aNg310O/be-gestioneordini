@@ -110,3 +110,7 @@ INSERT INTO roles (role_id, role, created_at) VALUES
 CREATE SEQUENCE log_id_seq;
 alter table log alter column id set default nextval('log_id_seq');
 grant usage, select, update on sequence log_id_seq to gestioneordini;
+
+CREATE SEQUENCE prodotti_id_seq;
+alter table prodotti alter column id set default nextval('prodotti_id_seq');
+grant usage, select, update on sequence prodotti_id_seq to gestioneordini;

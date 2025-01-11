@@ -2,7 +2,7 @@ module.exports = (sequelize, DataTypes) => {
   return sequelize.define(
     "prodotti",
     {
-      id: { type: DataTypes.INTEGER, primaryKey: true },
+      id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
       descrizione: DataTypes.STRING,
       grammatura: DataTypes.INTEGER,
       peso_totale: DataTypes.INTEGER,
