@@ -19,6 +19,10 @@ const login = async (req, res) => {
       return res.status(401).json({ message: "Credenziali non valide" });
     }
 
+    if (!user.valid) {
+      return res.status(403).json({ message: "Account disabilitato" });
+    }
+
     const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
       expiresIn: "24h",
     });

@@ -114,3 +114,5 @@ grant usage, select, update on sequence log_id_seq to gestioneordini;
 CREATE SEQUENCE prodotti_id_seq;
 alter table prodotti alter column id set default nextval('prodotti_id_seq');
 grant usage, select, update on sequence prodotti_id_seq to gestioneordini;
+
+alter table users add column valid boolean default true;
