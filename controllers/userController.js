@@ -66,7 +66,58 @@ const checkAuth = async (req, res) => {
   }
 };
 
+const getAllUsers = async (req, res) => {
+  try {
+    const allusers = await users.findAll();
+    res.json(allusers);
+  } catch (error) {
+    console.error("Errore nel recupero degli utenti:", error);
+    res.status(500).json({ message: "Errore del server" });
+  }
+};
+
+const disableUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const singleuser = await users.findByPk(id);
+
+    if (!singleuser) {
+      return res.status(404).json({ message: "Utente non trovato" });
+    }
+
+    singleuser.valid = false;
+    await singleuser.save();
+
+    res.json({ message: "Utente disabilitato con successo" });
+  } catch (error) {
+    console.error("Errore nella disabilitazione dell'utente:", error);
+    res.status(500).json({ message: "Errore del server" });
+  }
+};
+
+const enableUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const singleuser = await users.findByPk(id);
+
+    if (!singleuser) {
+      return res.status(404).json({ message: "Utente non trovato" });
+    }
+
+    singleuser.valid = true;
+    await singleuser.save();
+
+    res.json({ message: "Utente abilitato con successo" });
+  } catch (error) {
+    console.error("Errore nell'abilitazione dell'utente:", error);
+    res.status(500).json({ message: "Errore del server" });
+  }
+};
+
 module.exports = {
   login,
   checkAuth,
+  getAllUsers,
+  enableUser,
+  disableUser,
 };

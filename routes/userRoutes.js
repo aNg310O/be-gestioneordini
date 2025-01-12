@@ -1,5 +1,11 @@
 const express = require("express");
-const { login, checkAuth } = require("../controllers/userController");
+const {
+  login,
+  checkAuth,
+  getAllUsers,
+  enableUser,
+  disableUser,
+} = require("../controllers/userController");
 const {
   verifyToken,
   isAdmin,
@@ -89,5 +95,9 @@ router.post("/signup", checkDuplicateEmailOrUsername, async (req, res) => {
       .json({ message: "Errore del server", error: error.message });
   }
 });
+
+router.get("/", verifyToken, isAdmin, getAllUsers);
+router.put("/:id/disable", verifyToken, isAdmin, disableUser);
+router.put("/:id/enable", verifyToken, isAdmin, enableUser);
 
 module.exports = router;
