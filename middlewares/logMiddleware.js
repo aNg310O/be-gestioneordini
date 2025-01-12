@@ -1,12 +1,19 @@
 const { log } = require("../models");
 const moment = require("moment-timezone");
 
+const excludedRoutes = ["/api/users/login", "/api/users/logout", "/api/logs"];
+
 const logMiddleware = async (req, res, next) => {
   const start = process.hrtime();
 
   res.on("finish", async () => {
     const duration = process.hrtime(start);
     const durationInMs = duration[0] * 1000 + duration[1] / 1e6;
+
+    // Escludi le rotte specificate
+    if (excludedRoutes.includes(req.originalUrl)) {
+      return;
+    }
 
     try {
       const { method, originalUrl, user } = req;
