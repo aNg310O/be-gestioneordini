@@ -68,7 +68,9 @@ const checkAuth = async (req, res) => {
 
 const getAllUsers = async (req, res) => {
   try {
-    const allusers = await users.findAll();
+    const allusers = await users.findAll({
+      order: [["id", "ASC"]],
+    });
     res.json(allusers);
   } catch (error) {
     console.error("Errore nel recupero degli utenti:", error);
