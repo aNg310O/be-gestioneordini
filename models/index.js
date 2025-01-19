@@ -18,6 +18,10 @@ fs.readdirSync(__dirname)
 // Associazioni tra i modelli
 models.users.belongsTo(models.roles, { foreignKey: "role_id" });
 models.ordini.belongsTo(models.prodotti, { foreignKey: "prodotto_id" });
+models.ordini.belongsTo(models.users, {
+  foreignKey: "seller",
+  targetKey: "username",
+});
 
 models.sequelize = sequelize;
 models.Sequelize = Sequelize;
