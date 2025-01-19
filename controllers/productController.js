@@ -23,7 +23,10 @@ const createProduct = async (req, res) => {
 const getAllProducts = async (req, res) => {
   try {
     const products = await prodotti.findAll({
-      order: [["id", "ASC"]],
+      order: [
+        ["descrizione", "ASC"],
+        ["id", "ASC"],
+      ],
     });
     res.json(products);
   } catch (error) {
