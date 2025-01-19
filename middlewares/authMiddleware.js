@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const { users, roles } = require("../models");
+const moment = require("moment-timezone");
 
 const verifyToken = async (req, res, next) => {
   try {
@@ -41,6 +42,40 @@ const isAdmin = async (req, res, next) => {
   }
 };
 
+const isSeller = async (req, res, next) => {
+  try {
+    if (
+      !req.user ||
+      !req.user.role ||
+      (req.user.role.role !== "admin" && req.user.role.role !== "seller")
+    ) {
+      return res
+        .status(403)
+        .json({ message: "Richiesto ruolo admin o seller" });
+    }
+    next();
+  } catch (error) {
+    return res.status(500).json({ message: "Errore del server" });
+  }
+};
+
+const checkOrderTime = async (req, res, next) => {
+  try {
+    const cutoffHour = parseInt(process.env.ORDER_CUTOFF_HOUR, 10);
+    const currentHour = moment().tz("Europe/Rome").hour();
+
+    if (req.user.role.role === "seller" && currentHour >= cutoffHour) {
+      return res
+        .status(403)
+        .json({ message: "Non puoi inserire ordini dopo le " + cutoffHour });
+    }
+
+    next();
+  } catch (error) {
+    return res.status(500).json({ message: "Errore del server" });
+  }
+};
+
 const checkDuplicateEmailOrUsername = async (req, res, next) => {
   try {
     const { username, email } = req.body;
@@ -66,5 +101,7 @@ const checkDuplicateEmailOrUsername = async (req, res, next) => {
 module.exports = {
   verifyToken,
   isAdmin,
+  isSeller,
+  checkOrderTime,
   checkDuplicateEmailOrUsername,
 };
