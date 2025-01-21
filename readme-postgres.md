@@ -120,3 +120,15 @@ alter table users add column valid boolean default true;
 CREATE SEQUENCE ordini_id_seq;
 alter table ordini alter column id set default nextval('ordini_id_seq');
 grant usage, select, update on sequence ordini_id_seq to gestioneordini;
+
+CREATE TABLE "config" (
+  "id" SERIAL PRIMARY KEY,
+  "name" VARCHAR(255) NOT NULL,
+  "value" VARCHAR(255) NOT NULL
+);
+
+INSERT INTO "config" ("name", "value") VALUES ('order_cutoff_hour', '18');
+
+grant usage, select, update on sequence config_id_seq to gestioneordini;
+
+grant select, update, insert, delete on table config to gestioneordini;
