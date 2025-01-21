@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const { users, roles } = require("../models");
+const { users, roles, config } = require("../models");
 const moment = require("moment-timezone");
 
 const verifyToken = async (req, res, next) => {
@@ -61,7 +61,15 @@ const isSeller = async (req, res, next) => {
 
 const checkOrderTime = async (req, res, next) => {
   try {
-    const cutoffHour = parseInt(process.env.ORDER_CUTOFF_HOUR, 10);
+    const cutoffConfig = await config.findOne({
+      where: { name: "order_cutoff_hour" },
+    });
+
+    if (!cutoffConfig) {
+      return res.status(500).json({ message: "Configurazione non trovata" });
+    }
+
+    const cutoffHour = parseInt(cutoffConfig.value, 10);
     const currentHour = moment().tz("Europe/Rome").hour();
 
     if (req.user.role.role === "seller" && currentHour >= cutoffHour) {

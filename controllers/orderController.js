@@ -1,4 +1,4 @@
-const { ordini, users, prodotti } = require("../models");
+const { ordini, users, prodotti, config } = require("../models");
 const { Op } = require("sequelize");
 
 const createOrder = async (req, res) => {
@@ -89,8 +89,42 @@ const deleteOrder = async (req, res) => {
   }
 };
 
+const getOrderCutoffHour = async (req, res) => {
+  try {
+    const cutoffConfig = await config.findOne({
+      where: { name: "order_cutoff_hour" },
+    });
+    res.json({ cutoffHour: cutoffConfig.value });
+  } catch (error) {
+    console.error("Errore nel recupero del limite orario:", error);
+    res.status(500).json({ message: "Errore del server" });
+  }
+};
+
+const updateOrderCutoffHour = async (req, res) => {
+  try {
+    const { cutoffHour } = req.body;
+    const cutoffConfig = await config.findOne({
+      where: { name: "order_cutoff_hour" },
+    });
+
+    if (cutoffConfig) {
+      cutoffConfig.value = cutoffHour;
+      await cutoffConfig.save();
+      res.json({ message: "Limite orario aggiornato con successo" });
+    } else {
+      res.status(404).json({ message: "Configurazione non trovata" });
+    }
+  } catch (error) {
+    console.error("Errore nell'aggiornamento del limite orario:", error);
+    res.status(500).json({ message: "Errore del server" });
+  }
+};
+
 module.exports = {
   createOrder,
   getOrdersByDate,
   deleteOrder,
+  getOrderCutoffHour,
+  updateOrderCutoffHour,
 };
