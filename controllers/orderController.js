@@ -164,6 +164,82 @@ const getOrderTotalsByDate = async (req, res) => {
   }
 };
 
+const getOrderTotalsByMonth = async (req, res) => {
+  try {
+    const totals = await ordini.findAll({
+      attributes: [
+        [
+          sequelize.fn(
+            "DATE_TRUNC",
+            "month",
+            sequelize.col("ordini.created_at")
+          ),
+          "month",
+        ],
+        "prodotto_id",
+        "prodotti.grammatura",
+        [sequelize.fn("SUM", sequelize.col("ordini.qty")), "total_qty"],
+        [
+          sequelize.fn("SUM", sequelize.col("ordini.peso_totale")),
+          "total_weight",
+        ],
+      ],
+      group: ["month", "prodotto_id", "prodotti.grammatura", "prodotti.id"],
+      include: [
+        {
+          model: prodotti,
+          attributes: ["descrizione", "grammatura", "peso_totale"],
+        },
+      ],
+      order: [
+        [
+          sequelize.fn(
+            "DATE_TRUNC",
+            "month",
+            sequelize.col("ordini.created_at")
+          ),
+          "ASC",
+        ],
+        [sequelize.col("prodotti.descrizione"), "ASC"],
+        [sequelize.col("prodotti.grammatura"), "ASC"],
+      ],
+    });
+
+    res.json(totals);
+  } catch (error) {
+    console.error(
+      "Errore nel recupero dei totali mensili degli ordini:",
+      error
+    );
+    res.status(500).json({ message: "Errore del server" });
+  }
+};
+
+const getAvailableMonths = async (req, res) => {
+  try {
+    const months = await ordini.findAll({
+      attributes: [
+        [
+          sequelize.fn("DATE_TRUNC", "month", sequelize.col("created_at")),
+          "month",
+        ],
+      ],
+      group: ["month"],
+      order: [
+        [
+          sequelize.fn("DATE_TRUNC", "month", sequelize.col("created_at")),
+          "ASC",
+        ],
+      ],
+    });
+
+    res.json(months);
+  } catch (error) {
+    console.error("Errore nel recupero dei mesi disponibili:", error);
+    res.status(500).json({ message: "Errore del server" });
+  }
+};
+
 module.exports = {
   createOrder,
   getOrdersByDate,
@@ -171,4 +247,6 @@ module.exports = {
   getOrderCutoffHour,
   updateOrderCutoffHour,
   getOrderTotalsByDate,
+  getOrderTotalsByMonth,
+  getAvailableMonths,
 };
