@@ -1,4 +1,4 @@
-const { ordini, users, prodotti, config } = require("../models");
+const { ordini, users, prodotti, config, sequelize } = require("../models");
 const { Op } = require("sequelize");
 
 const createOrder = async (req, res) => {
@@ -121,10 +121,54 @@ const updateOrderCutoffHour = async (req, res) => {
   }
 };
 
+const getOrderTotalsByDate = async (req, res) => {
+  try {
+    const { date } = req.query;
+    const startDate = new Date(date);
+    const endDate = new Date(date);
+    endDate.setDate(endDate.getDate() + 1);
+
+    const totals = await ordini.findAll({
+      where: {
+        created_at: {
+          [Op.gte]: startDate,
+          [Op.lt]: endDate,
+        },
+      },
+      attributes: [
+        "prodotto_id",
+        "prodotti.grammatura",
+        [sequelize.fn("SUM", sequelize.col("ordini.qty")), "total_qty"],
+        [
+          sequelize.fn("SUM", sequelize.col("ordini.peso_totale")),
+          "total_weight",
+        ],
+      ],
+      group: ["prodotto_id", "prodotti.grammatura", "prodotti.id"],
+      include: [
+        {
+          model: prodotti,
+          attributes: ["descrizione", "grammatura", "peso_totale"],
+        },
+      ],
+      order: [
+        [sequelize.col("prodotti.descrizione"), "ASC"],
+        [sequelize.col("prodotti.grammatura"), "ASC"],
+      ],
+    });
+
+    res.json(totals);
+  } catch (error) {
+    console.error("Errore nel recupero dei totali degli ordini:", error);
+    res.status(500).json({ message: "Errore del server" });
+  }
+};
+
 module.exports = {
   createOrder,
   getOrdersByDate,
   deleteOrder,
   getOrderCutoffHour,
   updateOrderCutoffHour,
+  getOrderTotalsByDate,
 };
