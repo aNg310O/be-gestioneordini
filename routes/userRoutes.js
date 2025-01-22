@@ -5,6 +5,7 @@ const {
   getAllUsers,
   enableUser,
   disableUser,
+  updateProfile,
 } = require("../controllers/userController");
 const {
   verifyToken,
@@ -99,5 +100,6 @@ router.post("/signup", checkDuplicateEmailOrUsername, async (req, res) => {
 router.get("/", verifyToken, isAdmin, getAllUsers);
 router.put("/:id/disable", verifyToken, isAdmin, disableUser);
 router.put("/:id/enable", verifyToken, isAdmin, enableUser);
+router.put("/updateProfile", verifyToken, updateProfile);
 
 module.exports = router;

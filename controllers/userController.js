@@ -116,10 +116,32 @@ const enableUser = async (req, res) => {
   }
 };
 
+const updateProfile = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const userId = req.user.id;
+
+    const user = await users.findByPk(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "Utente non trovato" });
+    }
+
+    user.email = email;
+    await user.save();
+
+    res.json({ message: "Profilo aggiornato con successo", user });
+  } catch (error) {
+    console.error("Errore nell'aggiornamento del profilo:", error);
+    res.status(500).json({ message: "Errore del server" });
+  }
+};
+
 module.exports = {
   login,
   checkAuth,
   getAllUsers,
   enableUser,
   disableUser,
+  updateProfile,
 };
