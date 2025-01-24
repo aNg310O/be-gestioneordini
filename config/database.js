@@ -1,5 +1,6 @@
 require("dotenv").config();
 const { Sequelize } = require("sequelize");
+const pg = require("pg");
 
 const sequelize = new Sequelize(
   process.env.DB_NAME,
@@ -9,6 +10,7 @@ const sequelize = new Sequelize(
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
     dialect: "postgres",
+    dialectModule: pg,
     timezone: "+01:00",
     logging: false, // Disabilita i log delle query se non necessari
     pool: {
