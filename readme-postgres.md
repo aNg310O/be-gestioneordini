@@ -102,3 +102,5 @@ INSERT INTO roles (role_id, role, created_at) VALUES
 (1, 'admin', NOW()),
 (2, 'seller', NOW()),
 (3, 'user', NOW());
+### la password è Password1!
+insert into users (username, role_id, password, email) values ('admin',1,'$2a$10$wYZQkON/HRbyWcgV46MgfecD7wB3neR7hHMnP/YG5VaSVNesgt85m','admin@example.net');
