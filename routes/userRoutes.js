@@ -6,6 +6,7 @@ const {
   enableUser,
   disableUser,
   updateProfile,
+  changePassword,
 } = require("../controllers/userController");
 const {
   verifyToken,
@@ -101,5 +102,6 @@ router.get("/", verifyToken, isAdmin, getAllUsers);
 router.put("/:id/disable", verifyToken, isAdmin, disableUser);
 router.put("/:id/enable", verifyToken, isAdmin, enableUser);
 router.put("/updateProfile", verifyToken, updateProfile);
+router.put("/change-password", verifyToken, changePassword);
 
 module.exports = router;

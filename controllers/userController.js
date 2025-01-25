@@ -137,6 +137,26 @@ const updateProfile = async (req, res) => {
   }
 };
 
+const changePassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    const user = await users.findByPk(req.user.id);
+
+    if (!user || !(await bcrypt.compare(oldPassword, user.password))) {
+      return res.status(401).json({ message: "Password attuale non corretta" });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    await user.save();
+
+    res.json({ message: "Password aggiornata con successo" });
+  } catch (error) {
+    console.error("Errore nel cambio password:", error);
+    res.status(500).json({ message: "Errore del server" });
+  }
+};
+
 module.exports = {
   login,
   checkAuth,
@@ -144,4 +164,5 @@ module.exports = {
   enableUser,
   disableUser,
   updateProfile,
+  changePassword,
 };
