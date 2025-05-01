@@ -123,7 +123,6 @@ if (isProduction) {
 app.use(errorLogMiddleware);
 app.use(errorHandler);
 
-// Funzione per avviare il server
 const startServer = async () => {
   try {
     await sequelize.authenticate();
@@ -131,20 +130,19 @@ const startServer = async () => {
 
     if (cluster.isMaster && isProduction) {
       console.log(`Master ${process.pid} is running`);
-
-      // Fork workers
       for (let i = 0; i < numCPUs; i++) {
         cluster.fork();
       }
-
       cluster.on("exit", (worker, code, signal) => {
         console.log(`Worker ${worker.process.pid} died`);
-        cluster.fork(); // Crea un nuovo worker se uno muore
+        cluster.fork();
       });
     } else {
-      app.listen(PORT, () => {
+      const server = app.listen(PORT, () => {
         console.log(`Server running on port ${PORT} - Worker ${process.pid}`);
       });
+      // Salva il riferimento al server nell'app Express
+      app.set("server", server);
     }
   } catch (err) {
     console.error("Unable to connect to database:", err);
@@ -152,7 +150,6 @@ const startServer = async () => {
   }
 };
 
-// Gestione shutdown graceful con timeout
 const gracefulShutdown = () => {
   console.log("Shutting down gracefully...");
 
@@ -161,13 +158,23 @@ const gracefulShutdown = () => {
     process.exit(1);
   }, 10000);
 
-  app.close(() => {
-    clearTimeout(shutdownTimeout);
+  // Ottieni il server HTTP dall'app Express
+  const server = app.get("server");
+
+  if (server) {
+    server.close(() => {
+      clearTimeout(shutdownTimeout);
+      sequelize.close().then(() => {
+        console.log("Process terminated!");
+        process.exit(0);
+      });
+    });
+  } else {
     sequelize.close().then(() => {
       console.log("Process terminated!");
       process.exit(0);
     });
-  });
+  }
 };
 
 process.on("SIGTERM", gracefulShutdown);

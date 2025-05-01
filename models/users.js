@@ -28,6 +28,7 @@ module.exports = (sequelize, DataTypes) => {
       valid: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
+        default: true,
       },
       created_at: DataTypes.DATE,
     },

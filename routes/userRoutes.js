@@ -79,6 +79,7 @@ router.post("/signup", checkDuplicateEmailOrUsername, async (req, res) => {
       email,
       password: hashedPassword,
       role_id: finalRoleId,
+      valid: true,
     });
 
     res.status(201).json({
