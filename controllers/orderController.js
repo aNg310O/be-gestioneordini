@@ -5,7 +5,6 @@ const createOrder = async (req, res) => {
   try {
     const { seller, prodotto_id, grammatura, qty, peso_totale, notes } =
       req.body;
-
     const newOrder = await ordini.create({
       seller,
       prodotto_id,

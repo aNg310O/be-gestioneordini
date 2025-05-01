@@ -11,7 +11,7 @@ const sequelize = new Sequelize(
     port: process.env.DB_PORT,
     dialect: "postgres",
     dialectModule: pg,
-    timezone: "+01:00",
+    timezone: "+00:00",
     logging: false, // Disabilita i log delle query se non necessari
     pool: {
       max: 5,
@@ -20,6 +20,7 @@ const sequelize = new Sequelize(
       idle: 10000,
     },
     dialectOptions: {
+      useUTC: true,
       ssl:
         process.env.NODE_ENV === "production"
           ? { rejectUnauthorized: false }

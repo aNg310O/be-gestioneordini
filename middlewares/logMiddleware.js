@@ -38,9 +38,10 @@ const logMiddleware = async (req, res, next) => {
       const { method, originalUrl, user } = req;
       const username = user ? user.username : "anonymous";
       const statusCode = res.statusCode;
-      const currentTime = moment()
-        .tz("Europe/Rome")
-        .format("YYYY-MM-DD HH:mm:ss");
+      const currentTime = new Date();
+      //moment()
+      //  .tz("Europe/Rome")
+      //  .format("YYYY-MM-DD HH:mm:ss");
 
       await log.create({
         severity: getSeverityFromStatusCode(statusCode),
@@ -79,9 +80,10 @@ const errorLogMiddleware = async (err, req, res, next) => {
 
     const duration = process.hrtime(start);
     const durationInMs = duration[0] * 1000 + duration[1] / 1e6;
-    const currentTime = moment()
-      .tz("Europe/Rome")
-      .format("YYYY-MM-DD HH:mm:ss");
+    const currentTime = new Date();
+    //moment()
+    //  .tz("Europe/Rome")
+    //  .format("YYYY-MM-DD HH:mm:ss");
 
     try {
       const { method, originalUrl, user } = req;

@@ -25,6 +25,7 @@ const numCPUs = isProduction ? os.cpus().length : 1;
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
 const RATE_LIMIT_MAX = 100;
 const BODY_PARSER_LIMIT = "10kb";
+process.env.TZ = "UTC"; // Forza UTC in Node.js
 
 // Security middleware
 app.use(
