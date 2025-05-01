@@ -12,75 +12,166 @@ const {
   errorLogMiddleware,
 } = require("./middlewares/logMiddleware");
 const { verifyToken } = require("./middlewares/authMiddleware");
+const path = require("path");
+const cluster = require("cluster");
+const os = require("os");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const isProduction = process.env.NODE_ENV === "production";
+const numCPUs = isProduction ? os.cpus().length : 1;
+
+// Configurazioni
+const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
+const RATE_LIMIT_MAX = 100;
+const BODY_PARSER_LIMIT = "10kb";
 
 // Security middleware
 app.use(
   helmet({
-    contentSecurityPolicy: process.env.NODE_ENV === "production",
-    crossOriginEmbedderPolicy: process.env.NODE_ENV === "production",
+    contentSecurityPolicy: isProduction,
+    crossOriginEmbedderPolicy: isProduction,
+    hsts: isProduction,
+    frameguard: { action: "deny" },
+    hidePoweredBy: true,
+    noSniff: true,
+    xssFilter: true,
   })
 );
 
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  windowMs: RATE_LIMIT_WINDOW_MS,
+  max: RATE_LIMIT_MAX,
+  message: "Too many requests from this IP, please try again later",
+  standardHeaders: true,
+  legacyHeaders: false,
 });
-
-app.use(limiter);
 
 const corsOptions = {
   origin: process.env.ALLOWED_ORIGINS?.split(",") || "*",
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  optionsSuccessStatus: 200,
 };
 
 app.use(cors(corsOptions));
+app.options("*", cors(corsOptions)); // Abilita pre-flight per tutte le route
 app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "http://localhost:5173");
   next();
 });
-app.use(compression());
+// Middleware di compressione con filtro
+app.use(
+  compression({
+    filter: (req, res) => {
+      if (req.headers["x-no-compression"]) {
+        return false;
+      }
+      return compression.filter(req, res);
+    },
+    threshold: 0,
+  })
+);
 app.use(cookieParser());
-app.use(bodyParser.json({ limit: "10kb" }));
-app.use(bodyParser.urlencoded({ extended: true, limit: "10kb" }));
+app.use(bodyParser.json({ limit: BODY_PARSER_LIMIT }));
+app.use(bodyParser.urlencoded({ extended: true, limit: BODY_PARSER_LIMIT }));
+app.use(limiter);
 
 // Log middleware
 app.use(logMiddleware);
 
+// Trust proxy per quando dietro a un load balancer/reverse proxy
+if (isProduction) {
+  app.set("trust proxy", 1);
+}
+
+// Cache-Control middleware per risposte statiche
+app.use((req, res, next) => {
+  if (isProduction && req.method === "GET") {
+    res.set("Cache-Control", "public, max-age=3600");
+  }
+  next();
+});
+
 // Error logging middleware
-app.use(errorLogMiddleware);
+//app.use(errorLogMiddleware);
 
 // Routes
 app.use("/api/users", require("./routes/userRoutes"));
-app.use("/api/logs", verifyToken, require("./routes/logRoutes"));
+app.use("/api/logs", require("./routes/logRoutes"));
 app.use("/api/products", require("./routes/productRoutes"));
 app.use("/api/orders", require("./routes/orderRoutes"));
 
 // Error handling
-app.use(errorHandler);
+//app.use(errorHandler);
 
-// Graceful shutdown
-process.on("SIGTERM", () => {
-  console.log("SIGTERM received. Shutting down gracefully...");
-  app.close(() => {
-    console.log("Process terminated!");
-    sequelize.close();
-  });
+// Health check endpoint
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "UP" });
 });
 
-sequelize
-  .authenticate()
-  .then(() => {
+// Serve static files in produzione
+if (isProduction) {
+  app.use(express.static(path.join(__dirname, "public")));
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "index.html"));
+  });
+}
+
+// Middleware di gestione errori
+app.use(errorLogMiddleware);
+app.use(errorHandler);
+
+// Funzione per avviare il server
+const startServer = async () => {
+  try {
+    await sequelize.authenticate();
     console.log("Database connection established.");
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
-  })
-  .catch((err) => {
+
+    if (cluster.isMaster && isProduction) {
+      console.log(`Master ${process.pid} is running`);
+
+      // Fork workers
+      for (let i = 0; i < numCPUs; i++) {
+        cluster.fork();
+      }
+
+      cluster.on("exit", (worker, code, signal) => {
+        console.log(`Worker ${worker.process.pid} died`);
+        cluster.fork(); // Crea un nuovo worker se uno muore
+      });
+    } else {
+      app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT} - Worker ${process.pid}`);
+      });
+    }
+  } catch (err) {
     console.error("Unable to connect to database:", err);
     process.exit(1);
+  }
+};
+
+// Gestione shutdown graceful con timeout
+const gracefulShutdown = () => {
+  console.log("Shutting down gracefully...");
+
+  const shutdownTimeout = setTimeout(() => {
+    console.error("Forcing shutdown after timeout");
+    process.exit(1);
+  }, 10000);
+
+  app.close(() => {
+    clearTimeout(shutdownTimeout);
+    sequelize.close().then(() => {
+      console.log("Process terminated!");
+      process.exit(0);
+    });
   });
+};
+
+process.on("SIGTERM", gracefulShutdown);
+process.on("SIGINT", gracefulShutdown);
+
+// Avvia il server
+startServer();

@@ -1,12 +1,31 @@
 const { log } = require("../models");
 const moment = require("moment-timezone");
 
-const excludedRoutes = ["/api/users/login", "/api/users/logout", "/api/logs"];
+const excludedRoutes = [
+  "/api/users/login",
+  "/api/users/logout",
+  "/api/logs",
+  "/metrics",
+];
 
 const logMiddleware = async (req, res, next) => {
   const start = process.hrtime();
 
   res.on("finish", async () => {
+    function getSeverityFromStatusCode(statusCode) {
+      if (statusCode >= 500) {
+        return "error"; // Server errors (5xx)
+      } else if (statusCode >= 400) {
+        return "warning"; // Client errors (4xx)
+      } else if (statusCode >= 300) {
+        return "info"; // Redirects (3xx)
+      } else if (statusCode >= 200) {
+        return "success"; // Success (2xx)
+      } else {
+        return "info"; // Other cases (1xx)
+      }
+    }
+
     const duration = process.hrtime(start);
     const durationInMs = duration[0] * 1000 + duration[1] / 1e6;
 
@@ -24,7 +43,7 @@ const logMiddleware = async (req, res, next) => {
         .format("YYYY-MM-DD HH:mm:ss");
 
       await log.create({
-        severity: "info",
+        severity: getSeverityFromStatusCode(statusCode),
         username,
         page: `${method} ${originalUrl}`,
         text: `RESPONSE: ${statusCode} - DURATION: ${durationInMs.toFixed(
@@ -44,6 +63,20 @@ const errorLogMiddleware = async (err, req, res, next) => {
   const start = process.hrtime();
 
   res.on("finish", async () => {
+    function getSeverityFromStatusCode(statusCode) {
+      if (statusCode >= 500) {
+        return "error"; // Server errors (5xx)
+      } else if (statusCode >= 400) {
+        return "warning"; // Client errors (4xx)
+      } else if (statusCode >= 300) {
+        return "info"; // Redirects (3xx)
+      } else if (statusCode >= 200) {
+        return "success"; // Success (2xx)
+      } else {
+        return "info"; // Other cases (1xx)
+      }
+    }
+
     const duration = process.hrtime(start);
     const durationInMs = duration[0] * 1000 + duration[1] / 1e6;
     const currentTime = moment()
@@ -56,7 +89,7 @@ const errorLogMiddleware = async (err, req, res, next) => {
       const statusCode = res.statusCode;
 
       await log.create({
-        severity: "error",
+        severity: getSeverityFromStatusCode(statusCode),
         username,
         page: `${method} ${originalUrl}`,
         text: `RESPONSE: ${statusCode} - ${
