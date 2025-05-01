@@ -31,6 +31,7 @@ vi /etc/postgresql/14/main/postgresql.conf
 `create database gestioneordini with owner=gestioneordini encoding='UTF8' lc_collate='it_IT.UTF-8' lc_ctype='it_IT.UTF-8' tablespace=pg_default connection limit=25;`  
 `alter role gestioneordini with password 'gestioneordini';`
 > CONNETTERSI AL DB CREATO
+
 `
   CREATE TABLE "roles" (
   "role_id" integer PRIMARY KEY,
