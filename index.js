@@ -139,7 +139,7 @@ const startServer = async () => {
         cluster.fork();
       });
     } else {
-      const server = app.listen(PORT, () => {
+      const server = app.listen(PORT, "0.0.0.0", () => {
         console.log(`Server running on port ${PORT} - Worker ${process.pid}`);
       });
       // Salva il riferimento al server nell'app Express
