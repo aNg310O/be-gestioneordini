@@ -47,15 +47,22 @@ const limiter = rateLimit({
   legacyHeaders: false,
 });
 
-const allowwedOrigins = [
+const allowedOrigins = [
   "http://localhost:5173",
   process.env.ALLOWED_ORIGINS || "https://fe-gestioneordini.onrender.com",
 ];
 
+if (process.env.ALLOWED_ORIGINS && process.env.ALLOWED_ORIGINS.includes(",")) {
+  const origins = process.env.ALLOWED_ORIGINS.split(",").map((origin) =>
+    origin.trim()
+  );
+  allowedOrigins.push(...origins);
+}
+
 const corsOptions = {
   origin: function (origin, callback) {
     if (!origin) return callback(null, true);
-    if (allowwedOrigins.indexOf(origin) === -1) {
+    if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
       callback(new Error("Not allowed by CORS"));
