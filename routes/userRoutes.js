@@ -22,18 +22,7 @@ const router = express.Router();
 
 router.post("/login", login);
 
-router.get("/check-auth", verifyToken, checkAuth, (req, res) => {
-  try {
-    res.json({
-      isAuthenticated: true,
-      user: req.user,
-    });
-  } catch (error) {
-    res.status(500).json({
-      message: "Errore durante il check-auth",
-    });
-  }
-});
+router.get("/check-auth", verifyToken, checkAuth);
 
 router.post("/logout", verifyToken, (req, res) => {
   try {
@@ -49,8 +38,10 @@ router.post("/logout", verifyToken, (req, res) => {
       message: "Logout effettuato con successo",
     });
   } catch (error) {
+    console.error("Errore durante il logout:", error.stack);
     res.status(500).json({
       message: "Errore durante il logout",
+      error: error.message,
     });
   }
 });
