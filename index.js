@@ -11,7 +11,6 @@ const {
   logMiddleware,
   errorLogMiddleware,
 } = require("./middlewares/logMiddleware");
-const { verifyToken } = require("./middlewares/authMiddleware");
 const path = require("path");
 const cluster = require("cluster");
 const os = require("os");
@@ -48,8 +47,20 @@ const limiter = rateLimit({
   legacyHeaders: false,
 });
 
+const allowwedOrigins = [
+  "http://localhost:5173",
+  process.env.ALLOWED_ORIGINS || "https://fe-gestioneordini.onrender.com",
+];
+
 const corsOptions = {
-  origin: process.env.ALLOWED_ORIGINS?.split(",") || "*",
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowwedOrigins.indexOf(origin) === -1) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
@@ -58,10 +69,6 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions)); // Abilita pre-flight per tutte le route
-app.use(function (req, res, next) {
-  res.header("Access-Control-Allow-Origin", "http://localhost:5173");
-  next();
-});
 // Middleware di compressione con filtro
 app.use(
   compression({
