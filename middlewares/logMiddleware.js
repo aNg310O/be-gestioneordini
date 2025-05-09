@@ -6,6 +6,7 @@ const excludedRoutes = [
   "/api/users/logout",
   "/api/logs",
   "/metrics",
+  "/health",
 ];
 
 const logMiddleware = async (req, res, next) => {
