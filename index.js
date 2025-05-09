@@ -70,7 +70,13 @@ const corsOptions = {
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-Requested-With",
+    "Cookie",
+  ],
+  exposedHeaders: ["Set-Cookie"],
   optionsSuccessStatus: 200,
 };
 
@@ -88,7 +94,7 @@ app.use(
     threshold: 0,
   })
 );
-app.use(cookieParser());
+app.use(cookieParser(process.env.JWT_SECRET || "dev-secret"));
 app.use(bodyParser.json({ limit: BODY_PARSER_LIMIT }));
 app.use(bodyParser.urlencoded({ extended: true, limit: BODY_PARSER_LIMIT }));
 app.use(limiter);
