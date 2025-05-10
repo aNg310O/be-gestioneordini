@@ -109,8 +109,20 @@ if (isProduction) {
 
 // Cache-Control middleware per risposte statiche
 app.use((req, res, next) => {
-  if (isProduction && req.method === "GET") {
-    res.set("Cache-Control", "public, max-age=3600");
+  if (req.method === "GET") {
+    // Disabilita cache per le API
+    if (req.path.startsWith("/api")) {
+      res.set(
+        "Cache-Control",
+        "no-store",
+        "no-cache",
+        "must-revalidate",
+        "private"
+      );
+    } else if (isProduction) {
+      // Mantieni cache per asset statici
+      res.set("Cache-Control", "public, max-age=3600");
+    }
   }
   next();
 });

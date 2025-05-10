@@ -15,6 +15,17 @@ const createOrder = async (req, res) => {
       created_at: new Date(),
     });
 
+    // Forza la sincronizzazione con il database
+    await newOrder.reload({
+      include: [
+        { model: users, attributes: ["username"] },
+        {
+          model: prodotti,
+          attributes: ["descrizione", "grammatura", "peso_totale"],
+        },
+      ],
+    });
+
     res.status(201).json(newOrder);
   } catch (error) {
     console.error("Errore nella creazione dell'ordine:", error);
