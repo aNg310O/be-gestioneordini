@@ -165,16 +165,23 @@ const getOrderTotalsByDate = async (req, res) => {
 
 const getOrderTotalsByMonth = async (req, res) => {
   try {
+    const { month } = req.query;
+    if (!month) {
+      return res.status(400).json({ message: "Month parameter is required" });
+    }
+
+    const startDate = new Date(month);
+    const endDate = new Date(startDate);
+    endDate.setMonth(endDate.getMonth() + 1);
+
     const totals = await ordini.findAll({
+      where: {
+        created_at: {
+          [Op.gte]: startDate,
+          [Op.lt]: endDate,
+        },
+      },
       attributes: [
-        [
-          sequelize.fn(
-            "DATE_TRUNC",
-            "month",
-            sequelize.col("ordini.created_at")
-          ),
-          "month",
-        ],
         "prodotto_id",
         "prodotti.grammatura",
         [sequelize.fn("SUM", sequelize.col("ordini.qty")), "total_qty"],
@@ -183,7 +190,7 @@ const getOrderTotalsByMonth = async (req, res) => {
           "total_weight",
         ],
       ],
-      group: ["month", "prodotto_id", "prodotti.grammatura", "prodotti.id"],
+      group: ["prodotto_id", "prodotti.grammatura", "prodotti.id"],
       include: [
         {
           model: prodotti,
@@ -191,14 +198,6 @@ const getOrderTotalsByMonth = async (req, res) => {
         },
       ],
       order: [
-        [
-          sequelize.fn(
-            "DATE_TRUNC",
-            "month",
-            sequelize.col("ordini.created_at")
-          ),
-          "ASC",
-        ],
         [sequelize.col("prodotti.descrizione"), "ASC"],
         [sequelize.col("prodotti.grammatura"), "ASC"],
       ],

@@ -32,53 +32,12 @@ vi /etc/postgresql/14/main/postgresql.conf
 `alter role gestioneordini with password 'gestioneordini';`
 > CONNETTERSI AL DB CREATO
 
-`
-  CREATE TABLE "roles" (
-  "role_id" integer PRIMARY KEY,
-  "role" varchar,
-  "created_at" timestamp
-  );`  
-`CREATE TABLE "users" (
-"id" integer PRIMARY KEY,
-"username" varchar,
-"role_id" integer,
-"password" varchar,
-"email" varchar,
-"valid" boolean default true,
-"created_at" timestamp
-);`  
-`CREATE TABLE "prodotti" (
-"id" integer PRIMARY KEY,
-"descrizione" varchar,
-"grammatura" integer,
-"peso_totale" integer,
-"valid" boolean default true,
-"created_at" timestamp
-);`  
-`CREATE TABLE "ordini" (
-"id" integer PRIMARY KEY,
-"seller" varchar,
-"data_inserimento" timestamp,
-"prodotto_id" integer,
-"qty" integer,
-"peso_totale" integer,
-"notes" varchar,
-"is_custom" bool default false,
-"created_at" timestamp
-);`  
-`CREATE TABLE "log" (
-"id" integer PRIMARY KEY,
-"severity" varchar,
-"username" varchar,
-"page" varchar,
-"text" varchar,
-"created_at" timestamp DEFAULT (now())
-);`  
-`CREATE TABLE "config" (
-  "id" SERIAL PRIMARY KEY,
-  "name" VARCHAR(255) NOT NULL,
-  "value" VARCHAR(255) NOT NULL
-);`  
+`CREATE TABLE "roles" ("role_id" integer PRIMARY KEY,"role" varchar,"created_at" timestamp);`  
+`CREATE TABLE "users" ("id" integer PRIMARY KEY,"username" varchar,"role_id" integer,"password" varchar,"email" varchar,"valid" boolean default true,"created_at" timestamp);`  
+`CREATE TABLE "prodotti" ("id" integer PRIMARY KEY,"descrizione" varchar,"grammatura" integer,"peso_totale" integer,"valid" boolean default true,"created_at" timestamp);`  
+`CREATE TABLE "ordini" ("id" integer PRIMARY KEY,"seller" varchar,"data_inserimento" timestamp,"prodotto_id" integer,"qty" integer,"peso_totale" integer,"notes" varchar,"is_custom" bool default false,"created_at" timestamp);`  
+`CREATE TABLE "log" ("id" integer PRIMARY KEY,"severity" varchar,"username" varchar,"page" varchar,"text" varchar,"created_at" timestamp DEFAULT (now()));`  
+`CREATE TABLE "config" ("id" SERIAL PRIMARY KEY,"name" VARCHAR(255) NOT NULL,"value" VARCHAR(255) NOT NULL);`  
 `ALTER TABLE "users" ADD FOREIGN KEY ("role_id") REFERENCES "roles" ("role_id");`  
 `ALTER TABLE "ordini" ADD FOREIGN KEY ("prodotto_id") REFERENCES "prodotti" ("id");`  
 `GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE users TO gestioneordini;`  
@@ -101,9 +60,9 @@ vi /etc/postgresql/14/main/postgresql.conf
 `grant usage, select, update on sequence ordini_id_seq to gestioneordini;`  
 `grant usage, select, update on sequence config_id_seq to gestioneordini;`  
 `INSERT INTO "config" ("name", "value") VALUES ('order_cutoff_hour', '18');`  
-`INSERT INTO roles (role_id, role, created_at) VALUES
-(1, 'admin', NOW()),
-(2, 'seller', NOW()),
-(3, 'user', NOW());`  
+`INSERT INTO roles (role_id, role, created_at) VALUES (1, 'admin', NOW()),(2, 'seller', NOW()),(3, 'user', NOW());`  
+`CREATE INDEX log_created_at_idx ON log(created_at);`
+`CREATE INDEX log_severity_created_at_idx ON log(severity, created_at);`
+`CREATE INDEX log_username_idx ON log(username);`
 ### la password è Password1!
 `insert into users (username, role_id, password, email) values ('admin',1,'$2a$10$wYZQkON/HRbyWcgV46MgfecD7wB3neR7hHMnP/YG5VaSVNesgt85m','admin@example.net');`
