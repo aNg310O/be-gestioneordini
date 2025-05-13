@@ -32,6 +32,7 @@ const login = async (req, res) => {
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 24 * 60 * 60 * 1000,
+      // Partitioned: true, ← questo però **non è ancora supportato in Express**
     });
 
     res.json({

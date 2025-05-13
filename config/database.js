@@ -14,13 +14,14 @@ const sequelize = new Sequelize(
     timezone: "+00:00",
     logging: false, // Disabilita i log delle query se non necessari
     pool: {
-      max: 5,
+      max: 20,
       min: 0,
-      acquire: 30000,
+      acquire: 10000,
       idle: 10000,
     },
     dialectOptions: {
       useUTC: true,
+      statement_timeout: 5000, // timeout query lato PostgreSQL (in ms)
       ssl:
         process.env.NODE_ENV === "production"
           ? { rejectUnauthorized: false }
