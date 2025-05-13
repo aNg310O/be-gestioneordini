@@ -143,14 +143,9 @@ app.use("/api/orders", require("./routes/orderRoutes"));
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "UP" });
 });
-
-// Serve static files in produzione
-if (isProduction) {
-  app.use(express.static(path.join(__dirname, "public")));
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "index.html"));
-  });
-}
+app.get("/", (req, res) => {
+  res.status(200).send("API is running");
+});
 
 // Middleware di gestione errori
 app.use(errorLogMiddleware);
