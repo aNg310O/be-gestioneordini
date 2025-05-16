@@ -1,13 +1,7 @@
 const { log } = require("../models");
 const moment = require("moment-timezone");
 
-const excludedRoutes = [
-  "/api/users/login",
-  "/api/users/logout",
-  "/api/logs",
-  "/metrics",
-  "/health",
-];
+const excludedRoutes = ["/api/users/login", "/api/logs", "/metrics", "/health"];
 
 const logMiddleware = async (req, res, next) => {
   const start = process.hrtime();
