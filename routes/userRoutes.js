@@ -29,9 +29,9 @@ router.post("/logout", verifyToken, (req, res) => {
     // Se stai usando un blacklist per i token invalidati
     // puoi aggiungere qui il token corrente alla blacklist
     res.clearCookie("jwt", {
-      httpOnly: process.env.NODE_ENV === "production", // Usa questa opzione se il cookie è stato impostato come httpOnly
-      secure: true, // Usa questa opzione se il cookie è stato impostato in HTTPS
-      sameSite: "strict", // Aggiungi se hai usato questa configurazione
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     });
     res.json({
       success: true,
